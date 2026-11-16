@@ -1,0 +1,5 @@
+
+1. ¿Puedes demostrar qué cambió? ¿Y quién se conectó a esa hora?
+   No es posible demostrar qué cambió, en qué colección ocurrió ni qué documento fue afectado, ya que el perfilador de base de datos se encontraba apagado y la colección system.profile registra 0 documentos. Sin embargo, mediante la bitácora del servidor (getLog), sí se puede demostrar quién se conectó y autenticó a esa hora: la aplicación identificada como app-ventas-web (bajo el usuario app_ventas) estableció conexión y completó su autenticación exitosamente.
+2. ¿Por qué mongosh abre varias conexiones (conn8, conn9, ...) para una sola instrucción? ¿Cuál es la que se autentica?
+   El cliente mongosh y los controladores modernos de MongoDB gestionan un grupo de conexiones (pool) y establecen inicialmente una conexión de monitoreo o descubrimiento de topología para intercambiar los metadatos del cliente (client metadata) sin iniciar sesión. Posteriormente, abre una segunda conexión separada y dedicada a la sesión operativa del usuario, la cual es la que ejecuta el proceso de autenticación SCRAM y registra el evento Successfully authenticated.
