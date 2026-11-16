@@ -1,0 +1,10 @@
+1. ¿Qué usuario cambió la configuración del perfilador? ¿Qué dos eventos lo demuestran?
+El usuario administrador admin (autenticado en la base admin). Esto se demuestra correlacionando el identificador de contexto de conexión (ctx: "conn44") presente en ambos registros de la bitácora:
+- El evento con mensaje "Successfully authenticated" en la conexión conn44, donde se verifica que el usuario admin inició sesión desde 127.0.0.1 antes del cambio.
+- El evento posterior con mensaje "Profiler settings changed" registrado en la misma conexión conn44 (a las 2026-11-16T11:16:05.011-07:00), el cual detalla la transición del nivel de perfilado de 0 a 1 con el filtro de operaciones de escritura sobre la base comercial.
+
+2. ¿Qué condición debe cumplirse para que esta correlación sea válida? (Piensa en qué pasa si el servidor se reinicia y los números de conexión vuelven a empezar.)
+Ambos eventos deben pertenecer al mismo ciclo de ejecución continuo del proceso mongod (sin reinicios intermedios del servicio) y el evento de autenticación debe ser cronológicamente anterior al evento de cambio de configuración. Si el servidor se reinicia, el contador interno de conexiones vuelve a empezar desde conn1, por lo que un mismo identificador ctx en fechas distintas correspondería a sesiones y usuarios completamente diferentes.
+
+3. ¿Por qué es relevante que quede registrado un cambio de configuración del propio mecanismo de registro?
+Porque desactivar el perfilador o alterar sus filtros es una técnica habitual de evasión utilizada por atacantes o usuarios malintencionados para ocultar sus rastros antes de modificar o exfiltrar información crítica. Que este cambio quede asentado en la bitácora independiente del servidor permite detectar intentos de sabotaje sobre la trazabilidad y atribuir la responsabilidad de la alteración.

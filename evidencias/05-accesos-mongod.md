@@ -1,0 +1,8 @@
+1. ¿Qué campo distingue un acceso fallido de uno exitoso?
+Principalmente el campo msg ("Failed to authenticate" frente a "Successfully authenticated") y el campo attr.result, donde un acceso exitoso devuelve el valor 0 y un acceso fallido devuelve un código de error numérico distinto de cero (por ejemplo, 18 para falla de autenticación SCRAM o 11 para usuario no encontrado). Además, los eventos fallidos incluyen el campo attr.error detallando la causa específica del rechazo.
+
+2. ¿Qué diferencia hay entre el error de contraseña incorrecta y el de usuario inexistente? ¿Por qué el cliente recibe el mismo mensaje en ambos casos?
+En la bitácora interna del servidor, una contraseña incorrecta registra el error AuthenticationFailed: SCRAM authentication failed, storedKey mismatch (código de resultado 18), mientras que un usuario inexistente registra UserNotFound: Could not find user... (código de resultado 11). Sin embargo, el cliente recibe en ambos escenarios el mismo mensaje genérico (MongoServerError: Authentication failed.) como medida de seguridad para evitar la enumeración de usuarios válidos por parte de un atacante.
+
+3. ¿Por qué el nombre de la aplicación del intento fallido es mongosh 2.14.2 y no app-ventas-web?
+Porque en las cadenas de conexión utilizadas para ejecutar los intentos fallidos se omitió el parámetro ?appName=app-ventas-web en la URI. Al no especificarse un nombre de aplicación personalizado, el cliente mongosh envía por defecto su propio identificador y número de versión (mongosh 2.14.2) dentro de los metadatos de conexión.
